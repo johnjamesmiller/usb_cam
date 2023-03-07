@@ -34,6 +34,9 @@
 #include "usb_cam/usb_cam_node.hpp"
 #include "usb_cam/utils.hpp"
 
+#include <rmw/qos_profiles.h>
+#include <rclcpp/qos.hpp>
+
 
 namespace usb_cam
 {
@@ -43,6 +46,7 @@ UsbCamNode::UsbCamNode(const rclcpp::NodeOptions & node_options)
   img_(new sensor_msgs::msg::Image()),
   image_pub_(std::make_shared<image_transport::CameraPublisher>(
       image_transport::create_camera_publisher(this, "image_raw",
+      // rclcpp::QoS(rclcpp::KeepLast(100), rmw_qos_profile_best_available)))),
       rclcpp::QoS {100}.get_rmw_qos_profile()))),
   service_capture_(
     this->create_service<std_srvs::srv::SetBool>(
@@ -334,6 +338,7 @@ bool UsbCamNode::take_and_send_image()
 
   auto ci = std::make_unique<sensor_msgs::msg::CameraInfo>(cinfo_->getCameraInfo());
   ci->header = img_->header;
+  RCLCPP_INFO_STREAM(this->get_logger(), "publishing " << img_->header.stamp.sec << "." << img_->header.stamp.nanosec );
   image_pub_->publish(*img_, *ci);
   return true;
 }
