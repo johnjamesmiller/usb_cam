@@ -54,6 +54,8 @@ UsbCamNode::UsbCamNode(const rclcpp::NodeOptions & node_options)
         std::placeholders::_2,
         std::placeholders::_3)))
 {
+  frame_interval_publisher_ = this->create_publisher<std_msgs::msg::Float64>("frame_interval", 10);
+  
   // declare params
   this->declare_parameter("camera_name", "default_cam");
   this->declare_parameter("camera_info_url", "");
@@ -321,6 +323,9 @@ bool UsbCamNode::take_and_send_image()
   img_->header.stamp.sec = new_image->stamp.tv_sec;
   img_->header.stamp.nanosec = new_image->stamp.tv_nsec;
 
+  int64_t this_frame_ms = new_image->stamp.tv_sec * 1000 + static_cast<int64_t>(std::round(new_image->stamp.tv_nsec / 1000000.0));
+
+
   // Only resize if required
   if (img_->data.size() != static_cast<size_t>(new_image->step * new_image->height)) {
     img_->width = new_image->width;
@@ -335,6 +340,11 @@ bool UsbCamNode::take_and_send_image()
   auto ci = std::make_unique<sensor_msgs::msg::CameraInfo>(cinfo_->getCameraInfo());
   ci->header = img_->header;
   image_pub_->publish(*img_, *ci);
+  
+  auto message = std_msgs::msg::Float64();
+  message.data = this_frame_ms - last_frame_ms;
+  last_frame_ms = this_frame_ms;
+  frame_interval_publisher_->publish(message);
   return true;
 }
 

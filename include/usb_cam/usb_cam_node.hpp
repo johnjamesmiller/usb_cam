@@ -39,6 +39,7 @@
 #include "image_transport/image_transport.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "std_msgs/msg/float64.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 #include "usb_cam/usb_cam.hpp"
@@ -80,6 +81,10 @@ public:
   // shared image message
   sensor_msgs::msg::Image::UniquePtr img_;
   std::shared_ptr<image_transport::CameraPublisher> image_pub_;
+  
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr frame_interval_publisher_;
+  int64_t last_frame_ms;
+
   // parameters
   std::string video_device_name_;
   std::string frame_id_;
