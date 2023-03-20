@@ -253,7 +253,7 @@ bool UsbCam::read_frame()
         }
       }
 
-      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec)) + epoch_time_shift_;
+      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec));// + epoch_time_shift_;
       stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec * 1000.0);
 
       assert(buf.index < n_buffers_);
@@ -293,7 +293,7 @@ bool UsbCam::read_frame()
         }
       }
 
-      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec)) + epoch_time_shift_;
+      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec));// + epoch_time_shift_;
       stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec / 1000.0);
 
       for (i = 0; i < n_buffers_; ++i) {
