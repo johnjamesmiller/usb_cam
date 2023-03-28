@@ -204,6 +204,8 @@ bool UsbCam::read_frame()
   unsigned int i;
   int len;
   struct timespec stamp;
+  std::chrono::seconds secs;
+  std::chrono::nanoseconds nsec;
 
   switch (io_) {
     case io_method_t::IO_METHOD_READ:
@@ -252,9 +254,12 @@ bool UsbCam::read_frame()
             return false;  // ("VIDIOC_DQBUF");
         }
       }
+      epoch_time_shift_ = usb_cam::utils::get_epoch_time_shift();
+      secs = std::chrono::duration_cast<std::chrono::seconds>(epoch_time_shift_);
+      nsec = (epoch_time_shift_ - secs)*1000;
 
-      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec));// + epoch_time_shift_;
-      stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec * 1000.0);
+      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec)) + secs.count();
+      stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec * 1000.0) + nsec.count();
 
       assert(buf.index < n_buffers_);
       len = buf.bytesused;
@@ -293,8 +298,12 @@ bool UsbCam::read_frame()
         }
       }
 
-      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec));// + epoch_time_shift_;
-      stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec / 1000.0);
+      epoch_time_shift_ = usb_cam::utils::get_epoch_time_shift();
+      secs = std::chrono::duration_cast<std::chrono::seconds>(epoch_time_shift_);
+      nsec = (epoch_time_shift_ - secs)*1000;
+
+      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec)) + secs.count();
+      stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec * 1000.0) + nsec.count();
 
       for (i = 0; i < n_buffers_; ++i) {
         if (buf.m.userptr == reinterpret_cast<uint64_t>(buffers_[i].start) && \
@@ -481,7 +490,7 @@ bool UsbCam::init_mmap(void)
 
   CLEAR(req);
 
-  req.count = 10;
+  req.count = 12;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory = V4L2_MEMORY_MMAP;
 
@@ -545,7 +554,7 @@ bool UsbCam::init_userp(unsigned int buffer_size)
 
   CLEAR(req);
 
-  req.count = 10;
+  req.count = 12;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory = V4L2_MEMORY_USERPTR;
 

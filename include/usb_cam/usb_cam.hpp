@@ -212,11 +212,6 @@ public:
     return is_capturing_;
   }
 
-  inline time_t get_epoch_time_shift()
-  {
-    return epoch_time_shift_;
-  }
-
   inline std::vector<capture_format_t> supported_formats()
   {
     return supported_formats_;
@@ -256,7 +251,7 @@ private:
   struct SwsContext * video_sws_;
   camera_image_t * image_;
   bool is_capturing_;
-  const time_t epoch_time_shift_;
+  std::chrono::microseconds epoch_time_shift_;
   std::vector<capture_format_t> supported_formats_;
 };
 

@@ -36,6 +36,7 @@
 #include <cstring>
 #include <sstream>
 #include <string>
+#include <chrono>
 
 #include "usb_cam/constants.hpp"
 
@@ -87,7 +88,7 @@ struct buffer
 /// @brief Get epoch time shift
 /// @details Run this at start of process to calculate epoch time shift
 /// @ref https://stackoverflow.com/questions/10266451/where-does-v4l2-buffer-timestamp-value-starts-counting
-inline time_t get_epoch_time_shift()
+inline std::chrono::microseconds get_epoch_time_shift()
 {
   struct timeval epoch_time;
   struct timespec monotonic_time;
@@ -102,7 +103,7 @@ inline time_t get_epoch_time_shift()
     epoch_time.tv_sec * 1000 + static_cast<int64_t>(
     std::round(epoch_time.tv_usec / 1000.0));
 
-  return static_cast<time_t>((epoch_ms - uptime_ms) / 1000);
+  return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds(epoch_ms - uptime_ms));
 }
 
 
