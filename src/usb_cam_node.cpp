@@ -55,6 +55,7 @@ UsbCamNode::UsbCamNode(const rclcpp::NodeOptions & node_options)
         std::placeholders::_3)))
 {
   frame_interval_publisher_ = this->create_publisher<std_msgs::msg::Float64>("frame_interval", 10);
+  last_frame_ms = 0;
   
   // declare params
   this->declare_parameter("camera_name", "default_cam");
@@ -236,11 +237,15 @@ void UsbCamNode::init()
 
   // TODO(lucasw) should this check a little faster than expected frame rate?
   // TODO(lucasw) how to do small than ms, or fractional ms- std::chrono::nanoseconds?
-  const int period_ms = 1000.0 / framerate_;
-  timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(static_cast<int64_t>(period_ms)),
-    std::bind(&UsbCamNode::update, this));
-  RCLCPP_INFO_STREAM(this->get_logger(), "Timer triggering every " << period_ms << " ms");
+  // const int period_ms = 950.0 / framerate_;
+  // timer_ = this->create_wall_timer(
+  //   std::chrono::milliseconds(static_cast<int64_t>(period_ms)),
+  //   std::bind(&UsbCamNode::update, this));
+  // RCLCPP_INFO_STREAM(this->get_logger(), "Timer triggering every " << period_ms << " ms");
+
+  while(1){
+    this->update();
+  }
 }
 
 void UsbCamNode::get_params()
@@ -341,10 +346,13 @@ bool UsbCamNode::take_and_send_image()
   ci->header = img_->header;
   image_pub_->publish(*img_, *ci);
   
-  auto message = std_msgs::msg::Float64();
-  message.data = this_frame_ms - last_frame_ms;
+  if (last_frame_ms>0){
+    auto message = std_msgs::msg::Float64();
+    message.data = this_frame_ms - last_frame_ms;
+    frame_interval_publisher_->publish(message);
+  }
+
   last_frame_ms = this_frame_ms;
-  frame_interval_publisher_->publish(message);
   return true;
 }
 

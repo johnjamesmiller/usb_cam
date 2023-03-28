@@ -481,7 +481,7 @@ bool UsbCam::init_mmap(void)
 
   CLEAR(req);
 
-  req.count = 4;
+  req.count = 10;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory = V4L2_MEMORY_MMAP;
 
@@ -545,7 +545,7 @@ bool UsbCam::init_userp(unsigned int buffer_size)
 
   CLEAR(req);
 
-  req.count = 4;
+  req.count = 10;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory = V4L2_MEMORY_USERPTR;
 
@@ -741,7 +741,8 @@ bool UsbCam::open_device(void)
     return false;  // (EXIT_FAILURE);
   }
 
-  fd_ = open(camera_dev_.c_str(), O_RDWR /* required */ | O_NONBLOCK, 0);
+  fd_ = open(camera_dev_.c_str(), O_RDWR /* required */, 0);
+  //When the O_NONBLOCK flag is given, the read() function and the VIDIOC_DQBUF ioctl will return the EAGAIN error code when no data is available or no buffer is in the driver outgoing queue, otherwise these functions block until data becomes available.
 
   if (-1 == fd_) {
     std::cerr << "Cannot open '" << camera_dev_ << "': " << errno << ", ";
