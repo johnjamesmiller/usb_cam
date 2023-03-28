@@ -96,14 +96,14 @@ inline std::chrono::microseconds get_epoch_time_shift()
   gettimeofday(&epoch_time, NULL);
   clock_gettime(CLOCK_MONOTONIC, &monotonic_time);
 
-  const int64_t uptime_ms =
-    monotonic_time.tv_sec * 1000 + static_cast<int64_t>(
-    std::round(monotonic_time.tv_nsec / 1000000.0));
-  const int64_t epoch_ms =
-    epoch_time.tv_sec * 1000 + static_cast<int64_t>(
-    std::round(epoch_time.tv_usec / 1000.0));
+  const int64_t uptime_us =
+    monotonic_time.tv_sec * 1000000.0 + static_cast<int64_t>(
+    std::round(monotonic_time.tv_nsec / 1000.0));
+  const int64_t epoch_us =
+    epoch_time.tv_sec * 1000000.0 + static_cast<int64_t>(
+    std::round(epoch_time.tv_usec));
 
-  return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds(epoch_ms - uptime_ms));
+  return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds(epoch_us - uptime_us));
 }
 
 
