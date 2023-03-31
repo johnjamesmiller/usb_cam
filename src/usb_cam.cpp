@@ -204,8 +204,6 @@ bool UsbCam::read_frame()
   unsigned int i;
   int len;
   struct timespec stamp;
-  std::chrono::seconds secs;
-  std::chrono::nanoseconds nsec;
 
   switch (io_) {
     case io_method_t::IO_METHOD_READ:
@@ -254,12 +252,8 @@ bool UsbCam::read_frame()
             return false;  // ("VIDIOC_DQBUF");
         }
       }
-      epoch_time_shift_ = usb_cam::utils::get_epoch_time_shift();
-      secs = std::chrono::duration_cast<std::chrono::seconds>(epoch_time_shift_);
-      nsec = (epoch_time_shift_ - secs)*1000;
 
-      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec)) + secs.count();
-      stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec * 1000.0) + nsec.count();
+      stamp = usb_cam::utils::get_shifted_frame_time(buf.timestamp);
 
       assert(buf.index < n_buffers_);
       len = buf.bytesused;
@@ -298,12 +292,7 @@ bool UsbCam::read_frame()
         }
       }
 
-      epoch_time_shift_ = usb_cam::utils::get_epoch_time_shift();
-      secs = std::chrono::duration_cast<std::chrono::seconds>(epoch_time_shift_);
-      nsec = (epoch_time_shift_ - secs)*1000;
-
-      stamp.tv_sec = static_cast<time_t>(round(buf.timestamp.tv_sec)) + secs.count();
-      stamp.tv_nsec = static_cast<int64_t>(buf.timestamp.tv_usec * 1000.0) + nsec.count();
+      stamp = usb_cam::utils::get_shifted_frame_time(buf.timestamp);
 
       for (i = 0; i < n_buffers_; ++i) {
         if (buf.m.userptr == reinterpret_cast<uint64_t>(buffers_[i].start) && \

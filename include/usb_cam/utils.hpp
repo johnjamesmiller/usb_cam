@@ -84,6 +84,7 @@ struct buffer
   size_t length;
 };
 
+constexpr int64_t NSEC_PER_SEC = 1000 * 1000 * 1000;
 
 /// @brief Get epoch time shift
 /// @details Run this at start of process to calculate epoch time shift
@@ -104,6 +105,21 @@ inline std::chrono::microseconds get_epoch_time_shift()
     std::round(epoch_time.tv_usec));
 
   return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds(epoch_us - uptime_us));
+}
+
+inline timespec get_shifted_frame_time(timeval &timestamp)
+{
+  const auto t = (std::chrono::seconds(timestamp.tv_sec)
+            + std::chrono::microseconds(timestamp.tv_usec)
+            + usb_cam::utils::get_epoch_time_shift());
+  
+  const int64_t t_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(t).count();
+  
+  struct timespec stamp;
+  stamp.tv_sec = t_ns / NSEC_PER_SEC;
+  stamp.tv_nsec = t_ns % NSEC_PER_SEC;
+
+  return stamp;
 }
 
 
